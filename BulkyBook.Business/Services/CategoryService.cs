@@ -1,32 +1,59 @@
 using BulkyBook.Business.Services.IServices;
+using BulkyBook.DataAccess.Data;
 using BulkyBook.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace BulkyBook.Business.Services;
 
 public class CategoryService : ICategoryService
 {
-    public Task<Category> CreateCategoryAsync(Category category)
+
+    private readonly ApplicationDbContext _context;
+    public CategoryService(ApplicationDbContext context)
     {
-        throw new NotImplementedException();
+        _context = context;
+    }
+    public async Task<IEnumerable<Category>> GetAllCategoriesAsync()
+    {
+        return await _context.Categories.ToListAsync();
+    }
+    public async Task<Category?> GetCategoryByIdAsync(int id)
+    {
+        return await _context.Categories.FindAsync(id);
+    }
+    public async Task UpdateCategoryAsync(Category category)
+    {
+        _context.Categories.Update(category);
+        await _context.SaveChangesAsync();
     }
 
-    public Task DeleteCategoryAsync(int id)
+    public async Task<Category> CreateCategoryAsync(Category category)
     {
-        throw new NotImplementedException();
+        await _context.Categories.AddAsync(category);
+        await _context.SaveChangesAsync();
+        return category;
     }
 
-    public Task<IEnumerable<Category>> GetAllCategoriesAsync()
+    public async Task DeleteCategoryAsync(int id)
     {
-        throw new NotImplementedException();
+        var category = await _context.Categories.FindAsync(id);
+        if (category != null)
+        {
+            throw new KeyNotFoundException($"Category{id} not found");
+        }
+        _context.Categories.Remove(category);
+        await _context.SaveChangesAsync();
     }
 
-    public Task<Category?> GetCategoryByIdAsync(int id)
+public async Task<bool> IsCategoryNameUniqueAsync(string name, int? categoryId = null)
+{
+    if (categoryId.HasValue)
     {
-        throw new NotImplementedException();
+        return !await _context.Categories.AnyAsync(c => c.Name.ToLower() == name.ToLower() && c.CategoryId != categoryId.Value);
     }
-
-    public Task UpdateCategoryAsync(Category category)
+    else
     {
-        throw new NotImplementedException();
+        return !await _context.Categories.AnyAsync(c => c.Name.ToLower() == name.ToLower());
     }
+}
 }
