@@ -37,7 +37,7 @@ public class CategoryService : ICategoryService
     public async Task DeleteCategoryAsync(int id)
     {
         var category = await _context.Categories.FindAsync(id);
-        if (category != null)
+        if (category == null)
         {
             throw new KeyNotFoundException($"Category{id} not found");
         }
