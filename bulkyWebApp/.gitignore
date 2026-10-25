@@ -1,0 +1,176 @@
+## ==============================================================================
+## Official / Industry-Grade .gitignore for .NET & ASP.NET Core
+## ==============================================================================
+
+# ------------------------------------------------------------------------------
+# Build results, artifacts & binaries
+# ------------------------------------------------------------------------------
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# Visual Studio cache & auto-generated files
+.vs/
+Generated\ Files/
+
+# Visual Studio profiler
+*.profiler
+*.psess
+*.vsp
+*.vspx
+*.sap
+
+# ------------------------------------------------------------------------------
+# User-specific files & local workspace settings
+# ------------------------------------------------------------------------------
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.userprefs
+
+# Mono / Monodevelop
+*.pidb
+*.versioncontrol
+
+# Visual Studio Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.history/
+*.code-workspace
+
+# JetBrains Rider / ReSharper
+.idea/
+*.sln.iml
+_ReSharper*/
+*.[Rr]e[Ss]harper
+*.DotSettings.user
+
+# Visual Studio / Roslyn analyzer artifacts
+.sonarlint/
+.editorconfig.cache
+
+# ------------------------------------------------------------------------------
+# Build & Test execution results
+# ------------------------------------------------------------------------------
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+*.visualstudio.trx
+*.coverage
+*.coveragexml
+coverage.*
+TestResults/
+
+# Microsoft Fakes
+FakesAssemblies/
+
+# Native intermediate files
+*_i.c
+*_p.c
+*_h.h
+*.ilk
+*.meta
+*.obj
+*.iobj
+*.pch
+*.pdb
+*.ipdb
+*.pgc
+*.pgd
+*.rsp
+*.sbr
+*.tlb
+*.tli
+*.tlh
+*.tmp
+*.tmp_proj
+*_wpftmp.csproj
+*.log
+*.vspscc
+*.vssscc
+.builds
+*.aps
+
+# ------------------------------------------------------------------------------
+# NuGet
+# ------------------------------------------------------------------------------
+*.nupkg
+*.snupkg
+**/[Pp]ackages/*
+!**/[Pp]ackages/build/
+*.nuget.props
+*.nuget.targets
+project.lock.json
+project.assets.json
+
+# ------------------------------------------------------------------------------
+# ASP.NET Core / Web artifacts & Secrets
+# ------------------------------------------------------------------------------
+# Bundle and minified files (if generating at build time)
+# Note: Un-comment if bundling tools are used
+# *.min.css
+# *.min.js
+
+# ASP.NET Scaffolding & Web publishing
+PublishScripts/
+*.pubxml
+*.publishsettings
+Publish/
+
+# Environment files & local application secrets
+.env
+.env.*
+!.env.example
+appsettings*.Local.json
+*.secrets.json
+
+# Client-side dependencies (Node / npm / yarn / pnpm)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# ------------------------------------------------------------------------------
+# Entity Framework Core Migration idempotency & tooling bundles
+# ------------------------------------------------------------------------------
+efbundle
+efbundle.exe
+
+# ------------------------------------------------------------------------------
+# OS-specific files
+# ------------------------------------------------------------------------------
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# Windows
+[Tt]humbs.db
+[Ee]hthumbs.db
+[Ee]hthumbs_vista.db
+[Dd]esktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
