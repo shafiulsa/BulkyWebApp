@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 
 namespace BulkyBook.Models;
@@ -41,5 +42,11 @@ public class Product
 
         [ValidateNever]
         [Display(Name = "Product Image")]
-        public string? ImageUrl { get; set; }
+    public string? ImageUrl { get; set; }
+    
+
+    // Navigation Prooperty
+    public int CategoryId { get; set; }
+    [ForeignKey("CategoryId")]
+    public Category Category { get; set; }
 }
