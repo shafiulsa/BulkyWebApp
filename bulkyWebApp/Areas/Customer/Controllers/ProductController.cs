@@ -2,6 +2,7 @@ using BulkyBook.Models;
 using BulkyBook.DataAccess.Data;
 using Microsoft.AspNetCore.Mvc;
 using BulkyBook.Business.Services.IServices;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace bulkyWebApp.Controllers;
 
@@ -9,9 +10,11 @@ namespace bulkyWebApp.Controllers;
 public class ProductController : Controller
 {
     private readonly IProductService _productService;
-    public ProductController(IProductService productService)
+    private readonly ICategoryService _categoryService;
+    public ProductController(IProductService productService, ICategoryService categoryService)
     {
         _productService = productService;
+        _categoryService=categoryService;
     }
     public async Task<IActionResult> Index()
     {
@@ -21,7 +24,13 @@ public class ProductController : Controller
 
     public async Task<IActionResult> Upsert()
     {
-        return View();
+            IEnumerable<SelectListItem> categoryList = (await _categoryService.GetAllCategoriesAsync())
+                .Select(c=> new SelectListItem
+                {
+                    Text=c.Name,
+                    Value=c.CategoryId.ToString()
+                });
+            return View(categoryList);
     }
 
     [HttpPost]
