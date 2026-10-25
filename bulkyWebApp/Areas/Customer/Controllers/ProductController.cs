@@ -30,7 +30,7 @@ public class ProductController : Controller
                 Text = c.Name,
                 Value = c.CategoryId.ToString()
             });
-        ViewData["categoryList"] = categoryList;
+        ViewBag.CategoryList = categoryList;
 
         return View();
     }
