@@ -21,4 +21,9 @@
     <ProjectReference Include="..\BulkyBook.Models\BulkyBook.Models.csproj" />
   </ItemGroup>
 
+ <ItemGroup>
+    <!-- Prevent dotnet watch from triggering reload when files are uploaded -->
+    <Watch Remove="wwwroot\images\products\**\*" />
+  </ItemGroup>
+  
 </Project>
