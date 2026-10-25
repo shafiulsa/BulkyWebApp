@@ -5,9 +5,9 @@ using BulkyBook.Business.Services.IServices;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using BulkyBook.Models.ViewModels;
 
-namespace bulkyWebApp.Controllers;
+namespace bulkyWebApp.Areas.Admin.Controllers;
 
-[Area("Customer")]
+[Area("Admin")]
 public class ProductController : Controller
 {
     private readonly IProductService _productService;
@@ -77,7 +77,7 @@ public class ProductController : Controller
                     file.CopyTo(fileStream);
                 }
 
-                productVM.Product.ImageUrl = Path.Combine(@"\", productPath, fileName).Replace("\\", "/");
+                productVM.Product.ImageUrl = "/" + Path.Combine(productPath, fileName).Replace("\\", "/").TrimStart('/');
             }
 
             if (productVM.Product.Id == null || productVM.Product.Id == 0)
@@ -111,7 +111,6 @@ public class ProductController : Controller
 
     }
 
-
     #region API CALLS 
     public async Task<IActionResult> GetAll()
     {
@@ -119,36 +118,34 @@ public class ProductController : Controller
         return Json(new { data = products });
     }
 
-        [HttpDelete]
+    [HttpDelete]
 
     public async Task<IActionResult> Delete(int id)
     {
-         if (id == null || id == 0)
+        if (id == null || id == 0)
+        {
+            return Json(new { success = false, message = "Invalid ID" });
+        }
+
+        var productToBeDeleted = await _productService.GetProductByIdAsync(id);
+        if (productToBeDeleted == null)
+        {
+            return Json(new { success = false, message = "Error while deleting" });
+        }
+
+        //delete product image if that exists
+        if (!string.IsNullOrEmpty(productToBeDeleted.ImageUrl))
+        {
+            var imagePath = Path.Combine(_webHostEnvironment.WebRootPath, productToBeDeleted.ImageUrl.TrimStart('\\', '/'));
+
+            if (System.IO.File.Exists(imagePath))
             {
-                return Json(new { success = false, message = "Invalid ID" });
+                System.IO.File.Delete(imagePath);
             }
+        }
 
-            var productToBeDeleted = await _productService.GetProductByIdAsync(id);
-            if (productToBeDeleted == null)
-            {
-                return Json(new { success = false, message = "Error while deleting" });
-            }
-
-            //delete product image if that exists
-            if (!string.IsNullOrEmpty(productToBeDeleted.ImageUrl))
-            {
-                var imagePath = Path.Combine(_webHostEnvironment.WebRootPath, productToBeDeleted.ImageUrl.TrimStart('\\','/'));
-
-                if (System.IO.File.Exists(imagePath))
-                {
-                    System.IO.File.Delete(imagePath);
-                }
-            }
-
-
-            await _productService.DeleteProductAsync(id);
-            return Json(new { success = true, message = "Delete Successful" });
-
+        await _productService.DeleteProductAsync(id);
+        return Json(new { success = true, message = "Delete Successful" });
 
     }
 

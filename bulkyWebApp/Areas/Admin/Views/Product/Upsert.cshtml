@@ -91,10 +91,10 @@
                 <div class="col-lg-4">
                     <!--image-->
                         @if (!string.IsNullOrEmpty(Model.Product.ImageUrl))
-                            {
+                                {
                                 <div class="border rounded p-3 bg-light text-center">
                                     <p class="text-uppercase fw-semibold text-secondary mb-2" style="font-size: 0.65rem; letter-spacing: 0.1em;">Current Image</p>
-                                    <img src="@Model.Product.ImageUrl" class="img-fluid rounded shadow-sm mb-2"/>
+                                    <img src="@(Model.Product.ImageUrl.StartsWith("//") ? Model.Product.ImageUrl.TrimStart('/') : Model.Product.ImageUrl)" class="img-fluid rounded shadow-sm mb-2"/>
                                     <p class="text-secondary mb-0" style="font-size: 0.75rem;">Upload a new image to replace this one</p>
                                 </div>
                             }
