@@ -45,6 +45,7 @@ public class Product
     public string? ImageUrl { get; set; }
 
     // Navigation Prooperty
+    [Display(Name ="Category")]
     public int CategoryId { get; set; }
     [ForeignKey("CategoryId")]
     public Category Category { get; set; }
