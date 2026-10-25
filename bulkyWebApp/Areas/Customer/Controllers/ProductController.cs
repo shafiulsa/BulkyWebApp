@@ -16,7 +16,7 @@ public class ProductController : Controller
     public async Task<IActionResult> Index()
     {
         var products = await _productService.GetAllProductsAsync();
-        return View(products);
+        return View();
     }
 
     public async Task<IActionResult> Create()
@@ -99,7 +99,7 @@ public class ProductController : Controller
     #region API CALLS 
     public async Task<IActionResult> GetAll()
     {
-        var products = await _productService.GetAllProductsAsync();
+        var products = await _productService.GetAllProductsAsync(true);
         return Json(new { data = products });
     }
     #endregion
