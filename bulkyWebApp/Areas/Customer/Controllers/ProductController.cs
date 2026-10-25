@@ -25,7 +25,7 @@ public class ProductController : Controller
         return View();
     }
 
-    public async Task<IActionResult> Upsert()
+    public async Task<IActionResult> Upsert(int? id)
     {
 
         var categories = await _categoryService.GetAllCategoriesAsync();
@@ -39,7 +39,16 @@ public class ProductController : Controller
             Product = new Product()
         };
 
-        return View(productVM);
+        if(id==null || id == 0)
+        {
+            //create 
+            return View(productVM);
+        }
+        else
+            {
+                productVM.Product = await _productService.GetProductByIdAsync(id.Value);
+                return View(productVM);
+            }
     }
 
     [HttpPost]
@@ -62,17 +71,35 @@ public class ProductController : Controller
                 if (!Directory.Exists(finalPath))
                     Directory.CreateDirectory(finalPath);
 
+                // If updating and old image exists, delete the old image
+                if (!string.IsNullOrEmpty(productVM.Product.ImageUrl))
+                {
+                    var oldImagePath = Path.Combine(wwwRootPath, productVM.Product.ImageUrl.TrimStart('/', '\\'));
+                    if (System.IO.File.Exists(oldImagePath))
+                    {
+                        System.IO.File.Delete(oldImagePath);
+                    }
+                }
+
                 //save the new image
                 using (var fileStream = new FileStream(Path.Combine(finalPath, fileName), FileMode.Create))
                 {
                     file.CopyTo(fileStream);
                 }
 
-                productVM.Product.ImageUrl = Path.Combine(@"\", productPath, fileName).Replace("\\", "/");
+                productVM.Product.ImageUrl = $"/images/products/{fileName}";
             }
 
-            await _productService.CreateProductAsync(productVM.Product);
-            TempData["success"] = "Product created successfully";
+            if (productVM.Product.Id == 0)
+            {
+                await _productService.CreateProductAsync(productVM.Product);
+                TempData["success"] = "Product created successfully";
+            }
+            else
+            {
+                await _productService.UpdateProductAsync(productVM.Product);
+                TempData["success"] = "Product updated successfully";
+            }
             return RedirectToAction("Index");
         }
         else
