@@ -1,4 +1,4 @@
-@using BulkyBook.Models
+﻿@using BulkyBook.Models
 @model List<Product>
 
 <div class="container-fluid py-4">
@@ -18,15 +18,19 @@
             <table id="tblData" class="table-styled">
                 <thead>
                     <tr>
-                        <th>Product Name</th>
+                        <th>Title</th>
+                        <th>ISBN</th>
+                        <th>Price</th>
+                        <th>Author</th>
+                        <th>Category</th>
                         <th class="text-end">Actions</th>
                     </tr>
                 </thead>
-
-
             </table>
         </div>
- </div>
+    </div>
+</div>
+
 @section Scripts{
     <script src="~/js/products.js" asp-append-version="true"></script>
 }
