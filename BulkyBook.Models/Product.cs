@@ -43,7 +43,6 @@ public class Product
         [ValidateNever]
         [Display(Name = "Product Image")]
     public string? ImageUrl { get; set; }
-    
 
     // Navigation Prooperty
     public int CategoryId { get; set; }
