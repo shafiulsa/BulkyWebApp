@@ -1,4 +1,4 @@
-﻿$('#tblData').DataTable({
+$('#tblData').DataTable({
     ajax: '/product/getall',
     columns: [
         { data: 'title' },
