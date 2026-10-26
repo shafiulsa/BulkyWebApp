@@ -1,10 +1,12 @@
 
 using BulkyBook.Models;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace BulkyBook.DataAccess.Data;
 
-public class ApplicationDbContext : DbContext
+public class ApplicationDbContext : IdentityDbContext<IdentityUser>
 {
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
     {
@@ -15,18 +17,19 @@ public class ApplicationDbContext : DbContext
     public DbSet<Product> Products { get; set; }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        base.OnModelCreating(modelBuilder);
         modelBuilder.Entity<Category>().HasData(
             new Category { CategoryId = 1, Name = "Actions" },
             new Category { CategoryId = 2, Name = "Game" },
             new Category { CategoryId = 3, Name = "SciFi" }
         );
-         modelBuilder.Entity<Product>().HasData(
-new Product
-{
-    Id = 1,
-    Title = "Store of the Jungle",
-    Author = "Alba Solver",
-    Description = "A thrilling adventure deep in the heart of an uncharted jungle, where ancient secrets and hidden treasures await those brave enough to seek them.",
+        modelBuilder.Entity<Product>().HasData(
+            new Product
+            {
+                Id = 1,
+                Title = "Store of the Jungle",
+                Author = "Alba Solver",
+                Description = "A thrilling adventure deep in the heart of an uncharted jungle, where ancient secrets and hidden treasures await those brave enough to seek them.",
     ISBN = "JNG7777770001",
     ListPrice = 45,
     Price = 40,
@@ -125,8 +128,7 @@ new Product
     Price100 = 26,
     CategoryId = 3
 }
-        );
+       );
     }
-
 
 }
