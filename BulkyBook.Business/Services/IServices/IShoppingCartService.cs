@@ -1,0 +1,13 @@
+﻿using BulkyBook.Models;
+
+namespace BulkyBook.Business;
+
+public interface IShoppingCartService
+{
+    Task<ShoppingCart?> GetCartByIdAsync(int cartId);
+    Task<IEnumerable<ShoppingCart>> GetUserCartItemsAsync(string userId);
+    Task<int> GetCartCountAsync(string userId);
+    Task<ShoppingCart> AddToCartAsync(ShoppingCart cart);
+    Task UpdateCartAsync(ShoppingCart cart);
+    Task ClearCartAsync(string userId);
+}
