@@ -4,83 +4,94 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace bulkyWebApp.Areas.Identity.Controllers;
-    [Area("Identity")]
-    public class AccountController : Controller
+
+[Area("Identity")]
+public class AccountController : Controller
+{
+
+    private readonly UserManager<ApplicationUser> _userManager;
+    private readonly SignInManager<ApplicationUser> _signInManager;
+
+    public AccountController(UserManager<ApplicationUser> userManager,
+        SignInManager<ApplicationUser> signInManager)
     {
+        _userManager = userManager;
+        _signInManager = signInManager;
+    }
 
-        private readonly UserManager<ApplicationUser> _userManager;
-        private readonly SignInManager<ApplicationUser> _signInManager;
+    public IActionResult Login()
+    {
+        return View();
+    }
 
-        public AccountController(UserManager<ApplicationUser> userManager,
-            SignInManager<ApplicationUser> signInManager)
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Login(LoginVM loginVM)
+    {
+        if (ModelState.IsValid)
         {
-            _userManager = userManager;
-            _signInManager= signInManager;
-        }
+            var result = await _signInManager.PasswordSignInAsync(loginVM.Email,
+                loginVM.Password, loginVM.RememberMe, lockoutOnFailure: false);
 
-        public IActionResult Login()
-        {
-            return View();
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Login(LoginVM loginVM)
-        {
-            return View();
-        }
-
-        public IActionResult Register()
-        {
-            return View();
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Register(RegisterVM registerVM)
-        {
-
-            if (ModelState.IsValid)
-            {
-                var user = new ApplicationUser
+            if (result.Succeeded)
                 {
-                    UserName = registerVM.Email,
-                    Email = registerVM.Email,
-                    Name = registerVM.Name,
-                    PhoneNumber = registerVM.PhoneNumber,
-                    StreetAddress = registerVM.StreetAddress,
-                    City = registerVM.City,
-                    State = registerVM.State,
-                    PostalCode = registerVM.PostalCode
-                };
-
-
-  var result = await _userManager.CreateAsync(user,registerVM.Password);
-
-                if (result.Succeeded)
-                {
-                    //user has been created
-                    await _signInManager.SignInAsync(user, isPersistent: false);
-
                     return RedirectToAction("Index", "Home", new { area = "Customer" });
                 }
-
-                foreach (var error in result.Errors)
-                {
-                    ModelState.AddModelError(string.Empty, error.Description);
-                }
-
+                ModelState.AddModelError(string.Empty, "Invalid login attempt.");
             }
-            return View(registerVM);
-        }
+            return View(loginVM);
+    }
 
-        public IActionResult AccessDenied()
-        {
-            return View();
+    public IActionResult Register()
+    {
+        return View();
     }
-     public async Task<IActionResult> Logout()
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Register(RegisterVM registerVM)
+    {
+
+        if (ModelState.IsValid)
         {
-            await _signInManager.SignOutAsync();
-            return RedirectToAction("Index", "Home", new { area = "Customer" });
+            var user = new ApplicationUser
+            {
+                UserName = registerVM.Email,
+                Email = registerVM.Email,
+                Name = registerVM.Name,
+                PhoneNumber = registerVM.PhoneNumber,
+                StreetAddress = registerVM.StreetAddress,
+                City = registerVM.City,
+                State = registerVM.State,
+                PostalCode = registerVM.PostalCode
+            };
+
+            var result = await _userManager.CreateAsync(user, registerVM.Password);
+
+            if (result.Succeeded)
+            {
+                //user has been created
+                await _signInManager.SignInAsync(user, isPersistent: false);
+
+                return RedirectToAction("Index", "Home", new { area = "Customer" });
+            }
+
+            foreach (var error in result.Errors)
+            {
+                ModelState.AddModelError(string.Empty, error.Description);
+            }
+
         }
+        return View(registerVM);
     }
+
+    public IActionResult AccessDenied()
+    {
+        return View();
+    }
+    public async Task<IActionResult> Logout()
+    {
+        await _signInManager.SignOutAsync();
+        return RedirectToAction("Index", "Home", new { area = "Customer" });
+    }
+}
