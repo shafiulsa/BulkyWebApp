@@ -22,7 +22,7 @@ public class ProductController : Controller
         _categoryService = categoryService;
         _webHostEnvironment = webHostEnvironment;
     }
-     [AllowAnonymous]
+    
     public async Task<IActionResult> Index()
     {
         var products = await _productService.GetAllProductsAsync();
