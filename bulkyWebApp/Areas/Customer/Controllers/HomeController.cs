@@ -1,6 +1,9 @@
 using System.Diagnostics;
+using System.Security.Claims;
+using BulkyBook.Business;
 using BulkyBook.Business.Services.IServices;
 using BulkyBook.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace bulkyWebApp.Controllers;
@@ -10,9 +13,11 @@ namespace bulkyWebApp.Controllers;
 public class HomeController : Controller
 {
     private readonly IProductService _productService;
-    public HomeController(IProductService productService)
+    private readonly IShoppingCartService _shoppingCartService;
+    public HomeController(IProductService productService, IShoppingCartService shoppingCartService)
     {
         _productService = productService;
+        _shoppingCartService = shoppingCartService;
     }
     public async Task<IActionResult> Index()
     {
@@ -20,25 +25,41 @@ public class HomeController : Controller
         return View(products);
     }
 
-    public IActionResult Privacy()
-    {
-        return View();
-    }
+    [HttpGet]
     public async Task<IActionResult> Details(int productId)
     {
         var product = await _productService.GetProductByIdAsync(productId, includeCategory: true);
-           if (product == null)
+        if (product == null)
+        {
+            return NotFound();
+        }
+
+        var cart = new ShoppingCart
+        {
+            Product = product,
+            ProductId = productId,
+            Count = 1
+        };
+
+        return View(cart);
+    }
+
+  [HttpPost]
+        [Authorize]
+        public async Task<IActionResult> Details(ShoppingCart shoppingCart)
+        {
+            var claimsIdentity = (ClaimsIdentity)User.Identity;
+            var userId = claimsIdentity?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrEmpty(userId))
             {
-                return NotFound();
+                return Unauthorized();
             }
 
-            ShoppingCart cart = new()
-            {
-                Product = product,
-                Count = 1,
-                ProductId = productId
-            };
-            return View(cart);
-    }
+            shoppingCart.ApplicationUserId = userId;
+            await _shoppingCartService.AddToCartAsync(shoppingCart);
+            
+            return RedirectToAction("Details",new { productId = shoppingCart.ProductId });
+        }
 
 }

@@ -1,9 +1,9 @@
-﻿@model ShoppingCart
+@model ShoppingCart
 
 <div class="container py-4">
     
     <form method="post">
-        <!-- TODO: Add hidden field for ProductId -->
+        <input asp-for="ProductId" hidden />
 
         <div class="mb-3">
             
@@ -89,8 +89,7 @@
                     <div class="d-flex align-items-center gap-2">
                         <div class="input-group" style="width: 140px;">
                             <span class="input-group-text fw-semibold small" style="background: #17A34A; color: #fff;">Qty</span>
-                            <!-- TODO: Bind quantity input to model -->
-                            <input type="number" value="1" class="form-control text-center fw-medium" />
+                            <input asp-for="Count" type="number" class="form-control text-center fw-medium" min="1" max="1000" />
                         </div>
                         <button type="submit" class="btn btn-accent flex-grow-1 fw-semibold py-2">
                             <i class="bi bi-cart-plus me-1"></i> Add to Cart
