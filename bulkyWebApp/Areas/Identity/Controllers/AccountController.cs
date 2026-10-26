@@ -55,8 +55,7 @@ namespace bulkyWebApp.Areas.Identity.Controllers;
                 };
 
 
-                var result = await _userManager.CreateAsync(user);
-
+  var result = await _userManager.CreateAsync(user,registerVM.Password);
 
                 if (result.Succeeded)
                 {
@@ -78,5 +77,10 @@ namespace bulkyWebApp.Areas.Identity.Controllers;
         public IActionResult AccessDenied()
         {
             return View();
+    }
+     public async Task<IActionResult> Logout()
+        {
+            await _signInManager.SignOutAsync();
+            return RedirectToAction("Index", "Home", new { area = "Customer" });
         }
     }
