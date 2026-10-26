@@ -1,4 +1,4 @@
-﻿@model LoginVM
+@model LoginVM
 
 <div class="container">
     <div class="row justify-content-center mt-5">
@@ -21,8 +21,13 @@
                         </div>
 
                         <div class="mb-3">
-                            <label asp-for="Password" class="form-label">Email</label>
-                            <input asp-for="Password" type="password" class="form-control form-control-lg" />
+                            <label asp-for="Password" class="form-label">Password</label>
+                            <div class="input-group">
+                                <input asp-for="Password" type="password" id="loginPasswordInput" class="form-control form-control-lg" />
+                                <button class="btn btn-outline-secondary" type="button" onclick="togglePasswordVisibility('loginPasswordInput', 'loginPasswordToggleIcon')">
+                                    <i class="bi bi-eye" id="loginPasswordToggleIcon"></i>
+                                </button>
+                            </div>
                             <span asp-validation-for="Password" class="text-danger"></span>
                         </div>
 
@@ -57,4 +62,21 @@
 
 @section Scripts{
     <partial name="_ValidationScriptsPartial"/>
+    <script>
+        function togglePasswordVisibility(inputId, iconId) {
+            const input = document.getElementById(inputId);
+            const icon = document.getElementById(iconId);
+            if (!input || !icon) return;
+
+            if (input.type === "password") {
+                input.type = "text";
+                icon.classList.remove("bi-eye");
+                icon.classList.add("bi-eye-slash");
+            } else {
+                input.type = "password";
+                icon.classList.remove("bi-eye-slash");
+                icon.classList.add("bi-eye");
+            }
+        }
+    </script>
 }

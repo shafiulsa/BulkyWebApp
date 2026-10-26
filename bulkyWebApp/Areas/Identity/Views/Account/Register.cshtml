@@ -1,4 +1,4 @@
-﻿@model RegisterVM
+@model RegisterVM
 
 
 <div class="container mb-4">
@@ -32,13 +32,23 @@
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label asp-for="Password" class="form-label"></label>
-                                <input asp-for="Password" type="password" class="form-control" placeholder="••••••••" />
+                                <div class="input-group">
+                                    <input asp-for="Password" type="password" id="passwordInput" class="form-control" placeholder="••••••••" />
+                                    <button class="btn btn-outline-secondary" type="button" onclick="togglePasswordVisibility('passwordInput', 'passwordToggleIcon')">
+                                        <i class="bi bi-eye" id="passwordToggleIcon"></i>
+                                    </button>
+                                </div>
                                 <span asp-validation-for="Password" class="text-danger"></span>
                             </div>
 
                             <div class="col-md-6 mb-3">
                                 <label asp-for="ConfirmPassword" class="form-label"></label>
-                                <input asp-for="ConfirmPassword" type="password" class="form-control" placeholder="••••••••" />
+                                <div class="input-group">
+                                    <input asp-for="ConfirmPassword" type="password" id="confirmPasswordInput" class="form-control" placeholder="••••••••" />
+                                    <button class="btn btn-outline-secondary" type="button" onclick="togglePasswordVisibility('confirmPasswordInput', 'confirmPasswordToggleIcon')">
+                                        <i class="bi bi-eye" id="confirmPasswordToggleIcon"></i>
+                                    </button>
+                                </div>
                                 <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
                             </div>
                         </div>
@@ -77,7 +87,7 @@
                                 <label asp-for="Role" class="form-label"></label>
                                 <select asp-for="Role" asp-items="@Model.RoleList"  class="form-select" >
                                     <option disabled selected>- Select Role -</option>
-                                </select>                                <span asp-validation-for="Role" class="text-danger"></span>
+                                </select>                             
                             </div>
                         </div>
 
@@ -101,4 +111,21 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        function togglePasswordVisibility(inputId, iconId) {
+            const input = document.getElementById(inputId);
+            const icon = document.getElementById(iconId);
+            if (!input || !icon) return;
+
+            if (input.type === "password") {
+                input.type = "text";
+                icon.classList.remove("bi-eye");
+                icon.classList.add("bi-eye-slash");
+            } else {
+                input.type = "password";
+                icon.classList.remove("bi-eye-slash");
+                icon.classList.add("bi-eye");
+            }
+        }
+    </script>
 }
