@@ -3,11 +3,14 @@ using System.Security.Claims;
 using BulkyBook.Business;
 using BulkyBook.Business.Services.IServices;
 using BulkyBook.Models;
+using BulkyBook.Models.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace bulkyWebApp.Controllers;
-    [Area("Customer")]
+
+[Area("Customer")]
+    [Authorize]
     public class CartController : Controller
     {
         private readonly IProductService _productService;
@@ -21,7 +24,26 @@ namespace bulkyWebApp.Controllers;
         public async Task<IActionResult> Index()
         {
           
-            return View();
+           var claimsIdentity = (ClaimsIdentity)User.Identity;
+            var userId = claimsIdentity?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized();
+            }
+
+            var cartItems = await _shoppingCartService.GetUserCartItemsAsync(userId);
+
+            ShoppingCartVM shoppingCartVM = new()
+            {
+                ShoppingCartList = cartItems,
+                OrderHeader = new()
+            };
+
+            foreach(var cart in shoppingCartVM.ShoppingCartList)
+            {
+                shoppingCartVM.OrderHeader.OrderTotal += (cart.Price * cart.Count);
+            }
+            return View(shoppingCartVM);
         }
 
       
