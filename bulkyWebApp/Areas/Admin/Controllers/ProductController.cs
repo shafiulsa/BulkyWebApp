@@ -4,10 +4,13 @@ using Microsoft.AspNetCore.Mvc;
 using BulkyBook.Business.Services.IServices;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using BulkyBook.Models.ViewModels;
+using Microsoft.AspNetCore.Authorization;
+using BulkyBook.Utiltiy;
 
 namespace bulkyWebApp.Areas.Admin.Controllers;
 
 [Area("Admin")]
+[Authorize(Roles=SD.RoleAdmin)]
 public class ProductController : Controller
 {
     private readonly IProductService _productService;
@@ -19,6 +22,7 @@ public class ProductController : Controller
         _categoryService = categoryService;
         _webHostEnvironment = webHostEnvironment;
     }
+     [AllowAnonymous]
     public async Task<IActionResult> Index()
     {
         var products = await _productService.GetAllProductsAsync();
@@ -112,6 +116,8 @@ public class ProductController : Controller
     }
 
     #region API CALLS 
+    [HttpGet]
+    [AllowAnonymous]
     public async Task<IActionResult> GetAll()
     {
         var products = await _productService.GetAllProductsAsync(true);
