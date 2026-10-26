@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using BulkyBook.Business.Services.IServices;
+using BulkyBook.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace bulkyWebApp.Controllers;
@@ -26,7 +27,18 @@ public class HomeController : Controller
     public async Task<IActionResult> Details(int productId)
     {
         var product = await _productService.GetProductByIdAsync(productId, includeCategory: true);
-        return View(product);
+           if (product == null)
+            {
+                return NotFound();
+            }
+
+            ShoppingCart cart = new()
+            {
+                Product = product,
+                Count = 1,
+                ProductId = productId
+            };
+            return View(cart);
     }
 
 }
