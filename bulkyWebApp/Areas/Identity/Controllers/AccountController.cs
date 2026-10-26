@@ -14,12 +14,14 @@ public class AccountController : Controller
 
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly SignInManager<ApplicationUser> _signInManager;
-
+  private readonly RoleManager<IdentityRole>    _roleManager;
     public AccountController(UserManager<ApplicationUser> userManager,
-        SignInManager<ApplicationUser> signInManager)
+        SignInManager<ApplicationUser> signInManager,
+        RoleManager<IdentityRole> roleManager)
     {
         _userManager = userManager;
         _signInManager = signInManager;
+        _roleManager = roleManager;
     }
 
     public IActionResult Login()
@@ -62,7 +64,12 @@ public class AccountController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Register(RegisterVM registerVM)
     {
-
+           if(!await _roleManager.RoleExistsAsync(SD.RoleCustomer))
+            {
+                await _roleManager.CreateAsync(new IdentityRole(SD.RoleCustomer));
+                await _roleManager.CreateAsync(new IdentityRole(SD.RoleAdmin));
+                await _roleManager.CreateAsync(new IdentityRole(SD.RoleEmployee));
+            }
         if (ModelState.IsValid)
         {
             var user = new ApplicationUser
@@ -81,7 +88,16 @@ public class AccountController : Controller
 
             if (result.Succeeded)
             {
+                if (!string.IsNullOrEmpty(registerVM.Role))
+                {
+                    await _userManager.AddToRoleAsync(user, registerVM.Role);
+                }
+                else
+                {
+                        await _userManager.AddToRoleAsync(user, SD.RoleCustomer);
+                }
                 //user has been created
+
                 await _signInManager.SignInAsync(user, isPersistent: false);
 
                 return RedirectToAction("Index", "Home", new { area = "Customer" });

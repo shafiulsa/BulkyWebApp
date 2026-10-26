@@ -32,7 +32,7 @@ public class RegisterVM
 
         [Display(Name = "Phone Number")]
         public string? PhoneNumber { get; set; }   
-        [Required]
+       
         public string Role { get; set; }
 
         [ValidateNever]
