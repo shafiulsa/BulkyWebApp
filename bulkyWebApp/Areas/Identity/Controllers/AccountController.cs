@@ -24,15 +24,15 @@ public class AccountController : Controller
         _roleManager = roleManager;
     }
 
-    public IActionResult Login()
-    {
-        return View();
-    }
+        public IActionResult Login(string? returnUrl = null)
+        {
+            ViewData["ReturnUrl"] = returnUrl;
+            return View();
+        }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Login(LoginVM loginVM)
-    {
+        public async Task<IActionResult> Login(LoginVM loginVM, string? returnUrl = null)    {
         if (ModelState.IsValid)
         {
             var result = await _signInManager.PasswordSignInAsync(loginVM.Email,
@@ -40,30 +40,37 @@ public class AccountController : Controller
 
             if (result.Succeeded)
             {
-                return RedirectToAction("Index", "Home", new { area = "Customer" });
+                // Redirect to returnUrl if valid, otherwise go to Home
+                    if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+                    {
+                        return Redirect(returnUrl);
+                    }
+                        return RedirectToAction("Index", "Home", new { area = "Customer" });
             }
             ModelState.AddModelError(string.Empty, "Invalid login attempt.");
         }
         return View(loginVM);
     }
 
-    public IActionResult Register()
-    {
-        var model = new RegisterVM
+ public IActionResult Register(string? returnUrl = null)
         {
-            RoleList = [
+
+            var model = new RegisterVM{
+                RoleList =
+                [
                     new SelectListItem{Text=SD.RoleCustomer, Value=SD.RoleCustomer},
                     new SelectListItem{Text=SD.RoleAdmin, Value=SD.RoleAdmin},
                     new SelectListItem{Text=SD.RoleEmployee, Value=SD.RoleEmployee},
                 ]
-        };
-        return View(model);
-    }
+            };
+            ViewData["ReturnUrl"] = returnUrl;
+            return View(model);
+        }
+
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Register(RegisterVM registerVM)
-    {
+        public async Task<IActionResult> Register(RegisterVM registerVM, string? returnUrl = null)    {
            if(!await _roleManager.RoleExistsAsync(SD.RoleCustomer))
             {
                 await _roleManager.CreateAsync(new IdentityRole(SD.RoleCustomer));
@@ -99,6 +106,10 @@ public class AccountController : Controller
                 //user has been created
 
                 await _signInManager.SignInAsync(user, isPersistent: false);
+                if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+                {
+                    return Redirect(returnUrl);
+                }
 
                 return RedirectToAction("Index", "Home", new { area = "Customer" });
             }

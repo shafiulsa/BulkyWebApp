@@ -49,8 +49,9 @@
                     <hr class="my-4" />
 
                     <div class="text-center">
-                        <p class="mb-0">Don't have an account? <a asp-action="Register" class="fw-semibold text-decoration-none" style="color: #17A34A;">Register now</a></p>
-
+                        <p class="mb-0">Don't have an account? <a asp-action="Register" 
+                                                      asp-route-returnUrl="@ViewData["ReturnUrl"]"
+                            class="fw-semibold text-decoration-none" style="color: #17A34A;">Register now</a></p>
                     </div>
                 </div>
             </div>
