@@ -23,5 +23,10 @@ public class HomeController : Controller
     {
         return View();
     }
+    public async Task<IActionResult> Details(int productId)
+    {
+        var product = await _productService.GetProductByIdAsync(productId, includeCategory: true);
+        return View(product);
+    }
 
 }
