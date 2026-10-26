@@ -1,7 +1,10 @@
 using BulkyBook.Models;
 using BulkyBook.Models.ViewModels;
+using BulkyBook.Utiltiy;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using static BulkyBook.Utiltiy.SD;
 
 namespace bulkyWebApp.Areas.Identity.Controllers;
 
@@ -34,17 +37,25 @@ public class AccountController : Controller
                 loginVM.Password, loginVM.RememberMe, lockoutOnFailure: false);
 
             if (result.Succeeded)
-                {
-                    return RedirectToAction("Index", "Home", new { area = "Customer" });
-                }
-                ModelState.AddModelError(string.Empty, "Invalid login attempt.");
+            {
+                return RedirectToAction("Index", "Home", new { area = "Customer" });
             }
-            return View(loginVM);
+            ModelState.AddModelError(string.Empty, "Invalid login attempt.");
+        }
+        return View(loginVM);
     }
 
     public IActionResult Register()
     {
-        return View();
+        var model = new RegisterVM
+        {
+            RoleList = [
+                    new SelectListItem{Text=SD.RoleCustomer, Value=SD.RoleCustomer},
+                    new SelectListItem{Text=SD.RoleAdmin, Value=SD.RoleAdmin},
+                    new SelectListItem{Text=SD.RoleEmployee, Value=SD.RoleEmployee},
+                ]
+        };
+        return View(model);
     }
 
     [HttpPost]
