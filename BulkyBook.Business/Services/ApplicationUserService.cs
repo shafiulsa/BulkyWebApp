@@ -27,7 +27,6 @@ public class ApplicationUserService : IApplicationUserService
         }
 
         return await _context.ApplicationUsers
-          
             .FirstOrDefaultAsync(u => u.Id == userId);
     }
 }
