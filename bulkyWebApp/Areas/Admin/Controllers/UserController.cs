@@ -1,5 +1,6 @@
 using BulkyBook.Business;
 using BulkyBook.Models;
+using BulkyBook.Models.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -28,6 +29,29 @@ namespace bulkyWebApp.Areas.Admin.Controllers
         {
             return View();
         }
+
+        public async Task<IActionResult> RoleManagment(string userId)
+        {
+            var user = await _userService.GetUserByIdAsync(userId);
+
+            if (user == null)
+            {
+                return Json(new { success = false, message = "User not found" });
+            }
+
+            RoleManagmentVM RoleVM = new()
+            {
+                ApplicationUser = user,
+                RoleList = _roleManager.Roles.Select(u => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem
+                {
+                    Text = u.Name,
+                    Value = u.Name
+                })
+            };
+            RoleVM.ApplicationUser.Role = (await _userManager.GetRolesAsync(user)).FirstOrDefault();
+
+            return View(RoleVM);
+        }
         #region API CALLS 
         [HttpGet]
         [AllowAnonymous]
@@ -51,7 +75,7 @@ namespace bulkyWebApp.Areas.Admin.Controllers
                 return Json(new { success = false, message = "User not found" });
             }
 
-            if(await _userManager.IsLockedOutAsync(user))
+            if (await _userManager.IsLockedOutAsync(user))
             {
                 await _userManager.SetLockoutEndDateAsync(user, DateTimeOffset.UtcNow);
                 return Json(new { success = true, message = "User unlocked successfully" });
@@ -62,7 +86,6 @@ namespace bulkyWebApp.Areas.Admin.Controllers
                 return Json(new { success = true, message = "User locked successfully" });
             }
         }
-
 
         #endregion
 
