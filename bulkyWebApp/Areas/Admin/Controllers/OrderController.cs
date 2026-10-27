@@ -1,4 +1,5 @@
 using BulkyBook.Business.Services.IServices;
+using BulkyBook.Models;
 using BulkyBook.Utiltiy;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -10,6 +11,8 @@ namespace bulkyWebApp.Areas.Admin.Controllers
     public class OrderController : Controller
     {
         private readonly IOrderService _orderService;
+        [BindProperty]
+        public OrderHeader OrderHeader { get; set; }
         public OrderController(IOrderService orderService)
         {
             _orderService = orderService;
@@ -20,6 +23,12 @@ namespace bulkyWebApp.Areas.Admin.Controllers
         {
 
             return View();
+        }
+        [AllowAnonymous]
+        public async Task<IActionResult> Details(int orderId)
+        {
+            OrderHeader = await _orderService.GetOrderByIdAsync(orderId, includeDetails: true, includeUser: true);
+            return View(OrderHeader);
         }
 
         #region API CALLS
