@@ -1,0 +1,10 @@
+using BulkyBook.Models;
+
+namespace BulkyBook.Business.Services.IServices;
+
+public interface IOrderService
+{
+    Task<OrderHeader> CreateOrderAsync(OrderHeader orderHeader);
+    Task<OrderHeader?> GetOrderByIdAsync(int id, bool includeUser = false, bool includeDetails = false);
+    Task<OrderHeader?> GetAllOrderAsync(string? userId=null,string? status=null, bool includeUser = false, bool includeDetails = false);
+}

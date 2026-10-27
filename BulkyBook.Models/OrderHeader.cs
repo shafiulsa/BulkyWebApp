@@ -37,4 +37,7 @@ public class OrderHeader
         public string PostalCode { get; set; }
         [Required]
         public string Name { get; set; }
+        
+        [ValidateNever]
+        public IEnumerable<OrderDetails> OrderDetails { get; set; }
 }
