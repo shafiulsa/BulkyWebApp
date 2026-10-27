@@ -14,11 +14,13 @@ public class OrderService : IOrderService
         _db = db;
     }
 
-    public Task<OrderHeader> CreateOrderAsync(OrderHeader orderHeader)
-    {
-        throw new NotImplementedException();
-    }
+        public async Task<OrderHeader> CreateOrderAsync(OrderHeader orderHeader)
+        {
+           _db.OrderHeaders.Add(orderHeader);
+            await _db.SaveChangesAsync();
 
+            return orderHeader;
+        }
     public async Task<IEnumerable<OrderHeader>> GetAllOrderAsync(string? userId = null, string? status = null, bool includeUser = false, bool includeDetails = false)
     {
         var query = _db.OrderHeaders.AsQueryable();

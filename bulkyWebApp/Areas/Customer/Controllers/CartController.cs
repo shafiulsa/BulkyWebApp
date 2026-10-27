@@ -154,7 +154,7 @@ public class CartController : Controller
             ProductId = cart.ProductId,
             Price = cart.Price,
             Count = cart.Count,
-        });
+        }).ToList();
 
         //create order 
         await _orderService.CreateOrderAsync(shoppingCartVM.OrderHeader);
