@@ -4,5 +4,6 @@ namespace BulkyBook.Business;
 
 public interface IApplicationUserService
 {
-Task<ApplicationUser?> GetUserByIdAsync(string userId);
+    Task<ApplicationUser?> GetUserByIdAsync(string userId);
+    Task<IEnumerable<ApplicationUser>> GetAllUsersAsync();
 }

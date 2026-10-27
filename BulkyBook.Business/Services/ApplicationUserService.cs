@@ -14,6 +14,11 @@ public class ApplicationUserService : IApplicationUserService
         _context = context;
     }
 
+    public async Task<IEnumerable<ApplicationUser>> GetAllUsersAsync()
+    {
+        return await _context.ApplicationUsers.ToListAsync();
+    }
+
     public async Task<ApplicationUser?> GetUserByIdAsync(string userId)
     {
         if (string.IsNullOrEmpty(userId))
