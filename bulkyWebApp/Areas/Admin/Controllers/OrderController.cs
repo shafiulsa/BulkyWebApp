@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using BulkyBook.Business.Services.IServices;
 using BulkyBook.Models;
 using BulkyBook.Utiltiy;
@@ -33,12 +34,25 @@ namespace bulkyWebApp.Areas.Admin.Controllers
 
         #region API CALLS
         [AllowAnonymous]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll(string status)
         {
-            var orders = await _orderService.GetAllOrderAsync();
-            return Json(new { data = orders });
-        }
+            string? userId = null;
 
+            if (!User.IsInRole(SD.RoleAdmin) && !User.IsInRole(SD.RoleEmployee))
+            {
+                var claimsIdentity = (ClaimsIdentity)User.Identity;
+                userId = claimsIdentity?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+                if (string.IsNullOrEmpty(userId))
+                {
+                    return Unauthorized();
+                }
+            }
+
+            var orders = await _orderService.GetAllOrderAsync(userId, status);
+            return Json(new { data = orders });
+
+        }
         #endregion
     }
 }
