@@ -59,5 +59,11 @@ public class OrderService : IOrderService
 
         return await query.FirstOrDefaultAsync(u => u.Id == id);
     }
+
+    public async Task UpdateOrderAsync(OrderHeader orderHeader)
+    {
+        _db.OrderHeaders.Update(orderHeader);
+        await _db.SaveChangesAsync();
+    }
 }
 
