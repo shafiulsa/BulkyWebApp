@@ -1,6 +1,7 @@
 using BulkyBook.Business;
 using BulkyBook.Models;
 using BulkyBook.Models.ViewModels;
+using BulkyBook.Utiltiy;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -8,7 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace bulkyWebApp.Areas.Admin.Controllers
 {
     [Area("Admin")]
-
+    [Authorize(Roles = SD.RoleAdmin + "," + SD.RoleEmployee)]
     public class UserController : Controller
     {
         private readonly UserManager<ApplicationUser> _userManager;
@@ -65,7 +66,7 @@ namespace bulkyWebApp.Areas.Admin.Controllers
 
             string oldRole = (await _userManager.GetRolesAsync(user)).FirstOrDefault();
 
-            if(!(roleManagmentVM.ApplicationUser.Role == oldRole))
+            if (!(roleManagmentVM.ApplicationUser.Role == oldRole))
             {
                 //update Role
                 await _userManager.RemoveFromRoleAsync(user, oldRole);
@@ -75,6 +76,53 @@ namespace bulkyWebApp.Areas.Admin.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        public async Task<IActionResult> ChangePassword(string userId)
+        {
+            var user = await _userService.GetUserByIdAsync(userId);
+
+            if (user == null)
+            {
+                return Json(new { success = false, message = "User not found" });
+            }
+
+            AdminChangePassowordVM adminChangePassowordVM = new()
+            {
+                UserEmail = user.Email,
+                UserId = user.Id,
+            };
+
+            return View(adminChangePassowordVM);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ChangePassword(AdminChangePassowordVM adminChangePasswordVM)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(adminChangePasswordVM);
+            }
+            var user = await _userService.GetUserByIdAsync(adminChangePasswordVM.UserId);
+
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            await _userManager.RemovePasswordAsync(user);
+            var result = await _userManager.AddPasswordAsync(user, adminChangePasswordVM.NewPassword);
+            if (result.Succeeded)
+            {
+                TempData["success"] = $"Password for {user.Email} has been changed successfully.";
+                return RedirectToAction(nameof(Index));
+            }
+            foreach (var error in result.Errors)
+            {
+                ModelState.AddModelError(string.Empty, error.Description);
+            }
+            adminChangePasswordVM.UserEmail = user.Email;
+            return View(adminChangePasswordVM);
+
+        }
 
         #region API CALLS 
         [HttpGet]
