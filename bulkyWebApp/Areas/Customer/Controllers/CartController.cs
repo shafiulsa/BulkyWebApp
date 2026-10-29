@@ -7,6 +7,7 @@ using BulkyBook.Models.ViewModels;
 using BulkyBook.Utiltiy;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Stripe.Checkout;
 
 namespace bulkyWebApp.Controllers;
 
@@ -154,7 +155,7 @@ public class CartController : Controller
             shoppingCartVM.OrderHeader.OrderTotal += (cart.Price * cart.Count);
         }
 
-        shoppingCartVM.OrderHeader.OrderStatus = SD.StatusApproved;
+        shoppingCartVM.OrderHeader.OrderStatus = SD.StatusPending;
         shoppingCartVM.OrderHeader.OrderDetails = shoppingCartVM.ShoppingCartList.Select(cart => new OrderDetails
         {
             ProductId = cart.ProductId,
@@ -164,6 +165,49 @@ public class CartController : Controller
 
         //create order 
         await _orderService.CreateOrderAsync(shoppingCartVM.OrderHeader);
+
+        try
+        {
+            var domain = Request.Scheme + "://" + Request.Host.Value + "/";
+
+            var options = new Stripe.Checkout.SessionCreateOptions
+            {
+                SuccessUrl = domain + $"customer/cart/OrderConfirmation?id={shoppingCartVM.OrderHeader.Id}",
+                CancelUrl = domain + "customer/cart/index",
+                LineItems = new List<SessionLineItemOptions>(),
+                Mode = "payment",
+                Metadata = new Dictionary<string, string>
+                        {
+                            { "OrderId", shoppingCartVM.OrderHeader.Id.ToString() }
+                        }
+            };
+
+            foreach (var item in shoppingCartVM.ShoppingCartList)
+            {
+
+                var sessionLineItem = new SessionLineItemOptions
+                {
+                    PriceData = new SessionLineItemPriceDataOptions
+                    {
+                        UnitAmount = (long)(item.Price * 100),
+                        Currency = "usd",
+                        ProductData = new SessionLineItemPriceDataProductDataOptions
+                        {
+                            Name = item.Product.Title
+                        }
+                    },
+                    Quantity = item.Count,
+                };
+                options.LineItems.Add(sessionLineItem);
+            }
+
+            var service = new SessionService();
+            Session session = service.Create(options);
+        }
+        catch (Exception ex)
+        {
+        }
+
         var user = await _applicationUserService.GetUserByIdAsync(userId);
         await _emailService.SendOrderConfirmationEmailAsync(user.Email,
             shoppingCartVM.OrderHeader.Id, (decimal)shoppingCartVM.OrderHeader.OrderTotal);
