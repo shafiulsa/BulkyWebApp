@@ -3,6 +3,7 @@ using BulkyBook.DataAccess.Data;
 using BulkyBook.Models;
 using Microsoft.EntityFrameworkCore;
 using BulkyBook.Utiltiy;
+using Stripe.Checkout;
 
 namespace BulkyBook.Business.Services;
 
@@ -108,6 +109,75 @@ public class OrderService : IOrderService
         }
 
         await _db.SaveChangesAsync();
+    }
+    public async Task<string> CreateStripeCheckoutSessionAsync(OrderHeader orderHeader, IEnumerable<ShoppingCart> cartItems, string domain)
+    {
+        if (orderHeader == null)
+        {
+            throw new ArgumentNullException(nameof(orderHeader));
+        }
+
+        if (cartItems == null || !cartItems.Any())
+        {
+            throw new ArgumentException("Cart items cannot be empty", nameof(cartItems));
+        }
+
+        var options = new Stripe.Checkout.SessionCreateOptions
+        {
+            SuccessUrl = domain + $"customer/cart/OrderConfirmation?id={orderHeader.Id}",
+            CancelUrl = domain + "customer/cart/index",
+            LineItems = new List<SessionLineItemOptions>(),
+            Mode = "payment",
+            Metadata = new Dictionary<string, string>
+                        {
+                            { "OrderId", orderHeader.Id.ToString() }
+                        }
+        };
+
+        foreach (var item in cartItems)
+        {
+
+            var sessionLineItem = new SessionLineItemOptions
+            {
+                PriceData = new SessionLineItemPriceDataOptions
+                {
+                    UnitAmount = (long)(item.Price * 100),
+                    Currency = "usd",
+                    ProductData = new SessionLineItemPriceDataProductDataOptions
+                    {
+                        Name = item.Product.Title
+                    }
+                },
+                Quantity = item.Count,
+            };
+            options.LineItems.Add(sessionLineItem);
+        }
+
+        var service = new SessionService();
+        Session session = service.Create(options);
+        await UpdateStripePaymentAsync(orderHeader.Id, session.Id, session.PaymentIntentId);
+        return session.Url;
+    }
+
+    public async Task<bool> VerifyStripePaymentAsync(OrderHeader orderHeader)
+    {
+        var service = new SessionService();
+        Session session = service.Get(orderHeader.SessionId);
+        if (session.PaymentStatus.ToLower() == "paid")
+        {
+            await UpdateStripePaymentAsync(orderHeader.Id, session.Id, session.PaymentIntentId);
+            await UpdateOrderStatusAsync(orderHeader.Id, SD.StatusApproved);
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    public Task<bool> CancelOrderWithRefundAsync(int orderId)
+    {
+        throw new NotImplementedException();
     }
 }
 
