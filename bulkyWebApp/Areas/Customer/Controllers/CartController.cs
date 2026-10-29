@@ -205,12 +205,12 @@ public class CartController : Controller
             Session session = service.Create(options);
             await _orderService.UpdateStripePaymentAsync(shoppingCartVM.OrderHeader.Id, session.Id, session.PaymentIntentId);
 
-            Response.Headers.Append("Location", session.Url);
+            Response.Headers.Add("Location", session.Url);
             return new StatusCodeResult(303);
         }
         catch (Exception ex)
         {
-            TempData["error"] = "Payment processing failed. Please try again.";
+            TempData["error"] = $"Payment processing failed: {ex.Message}";
             return RedirectToAction(nameof(Index));
         }
 
