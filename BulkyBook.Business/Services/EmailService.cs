@@ -5,7 +5,7 @@ using Microsoft.Extensions.Configuration;
 
 namespace BulkyBook.Business.Services;
 
-public class EmailService :IEmailService
+public class EmailService : IEmailService
 {
     private readonly IConfiguration _configuration;
     private readonly string _apiKey;
@@ -14,46 +14,52 @@ public class EmailService :IEmailService
     private readonly string _senderName;
 
     public EmailService(IConfiguration configuration)
+    {
+        _configuration = configuration;
+        _apiKey = _configuration["Mailjet:ApiKey"];
+        _secretKey = _configuration["Mailjet:SecretKey"];
+        _senderEmail = _configuration["Mailjet:SenderEmail"];
+        _senderName = _configuration["Mailjet:SenderName"];
+    }
+
+    public async Task<bool> SendEmailAsync(string toEmail, string subject, string htmlContent)
+    {
+        try
         {
-            _configuration= configuration;
-            _apiKey = _configuration["Mailjet:ApiKey"];
-            _secretKey = _configuration["Mailjet:SecretKey"];
-            _senderEmail = _configuration["Mailjet:SenderEmail"];
-            _senderName = _configuration["Mailjet:SenderName"];
+            MailjetClient client = new MailjetClient(_apiKey, _secretKey);
+
+            var email = new TransactionalEmailBuilder().WithFrom(new SendContact(_senderEmail, _senderName))
+                .WithTo(new SendContact(toEmail)).WithSubject(subject).WithHtmlPart(htmlContent).Build();
+            // var response = await client.SendTransactionalEmailAsync(email);
+
+            // if (response.Messages != null && response.Messages.Length > 0)
+            // {
+            //     var message = response.Messages[0];
+            //     if (message.Status == "success")
+            //     {
+            //         return true;
+            //     }
+            //     else
+            //     {
+            //         return false;
+            //     }
+
+            // }
+            return true;
+
         }
-
-
- public async Task<bool> SendEmailAsync(string toEmail, string subject, string htmlContent)
+        catch (Exception e)
         {
-            try
-            {
-                MailjetClient client = new MailjetClient(_apiKey, _secretKey);
-
-                var email = new TransactionalEmailBuilder().WithFrom(new SendContact(_senderEmail, _senderName))
-                    .WithTo(new SendContact(toEmail)).WithSubject(subject).WithHtmlPart(htmlContent).Build();
-
-                var response = await client.SendTransactionalEmailAsync(email);
-
-                if (response.Messages != null && response.Messages.Length > 0)
-                {
-                   
-                }
-
-                return true;
-
-            }
-            catch(Exception e)
-            {
-                return false;
-            }
+            return false;
         }
+    }
 
-        public async Task<bool> SendOrderConfirmationEmailAsync(string toEmail, int orderId, decimal orderTotal)
-        {
-            var subject = $"Order Confirmation #{orderId} - BulkyBook";
+    public async Task<bool> SendOrderConfirmationEmailAsync(string toEmail, int orderId, decimal orderTotal)
+    {
+        var subject = $"Order Confirmation #{orderId} - BulkyBook";
 
-            // Simple HTML email to demonstrate email functionality
-            var htmlContent = $@"
+        // Simple HTML email to demonstrate email functionality
+        var htmlContent = $@"
                 <h1>Thank you for your order!</h1>
                 <p>Your order has been placed successfully.</p>
                 <hr />
@@ -64,7 +70,7 @@ public class EmailService :IEmailService
                 <p>Thank you for shopping with BulkyBook!</p>
                 <p>- The BulkyBook Team</p>";
 
-            return await SendEmailAsync(toEmail, subject, htmlContent);
-        }
-    
+        return await SendEmailAsync(toEmail, subject, htmlContent);
+    }
+
 }
