@@ -7,6 +7,7 @@ using BulkyBook.Models.ViewModels;
 using BulkyBook.Utiltiy;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Stripe;
 using Stripe.Checkout;
 
 namespace bulkyWebApp.Controllers;
@@ -170,45 +171,11 @@ public class CartController : Controller
         {
             var domain = Request.Scheme + "://" + Request.Host.Value + "/";
 
-            var options = new Stripe.Checkout.SessionCreateOptions
-            {
-                SuccessUrl = domain + $"customer/cart/OrderConfirmation?id={shoppingCartVM.OrderHeader.Id}",
-                CancelUrl = domain + "customer/cart/index",
-                LineItems = new List<SessionLineItemOptions>(),
-                Mode = "payment",
-                Metadata = new Dictionary<string, string>
-                          {
-                              { "OrderId", shoppingCartVM.OrderHeader.Id.ToString() }
-                          }
-            };
-
-            foreach (var item in shoppingCartVM.ShoppingCartList)
-            {
-
-                var sessionLineItem = new SessionLineItemOptions
-                {
-                    PriceData = new SessionLineItemPriceDataOptions
-                    {
-                        UnitAmount = (long)(item.Price * 100),
-                        Currency = "usd",
-                        ProductData = new SessionLineItemPriceDataProductDataOptions
-                        {
-                            Name = item.Product.Title
-                        }
-                    },
-                    Quantity = item.Count,
-                };
-                options.LineItems.Add(sessionLineItem);
-            }
-
-            var service = new SessionService();
-            Session session = service.Create(options);
-            await _orderService.UpdateStripePaymentAsync(shoppingCartVM.OrderHeader.Id, session.Id, session.PaymentIntentId);
-
-            Response.Headers.Add("Location", session.Url);
+            var sessionUrl = await _orderService.CreateStripeCheckoutSessionAsync(shoppingCartVM.OrderHeader, shoppingCartVM.ShoppingCartList, domain);
+            Response.Headers.Append("Location", sessionUrl);
             return new StatusCodeResult(303);
         }
-        catch (Exception ex)
+        catch (StripeException ex)
         {
             TempData["error"] = $"Payment processing failed: {ex.Message}";
             return RedirectToAction(nameof(Index));
@@ -240,20 +207,18 @@ public class CartController : Controller
 
         try
         {
-            var service = new SessionService();
-            Session session = service.Get(orderHeader.SessionId);
-            if (session.PaymentStatus.ToLower() == "paid")
+            var result = await _orderService.VerifyStripePaymentAsync(orderHeader);
+
+            if (result)
             {
-                await _orderService.UpdateStripePaymentAsync(id, session.Id, session.PaymentIntentId);
-                await _orderService.UpdateOrderStatusAsync(id, SD.StatusApproved);
-                TempData["success"] = "Payment completed successfully! Your order has been confirmed.";
+             TempData["success"] = "Payment completed successfully! Your order has been confirmed.";
             }
             else
             {
-                TempData["warning"] = "Payment status is pending. Please contact support if you completed the payment.";
+                TempData["error"] = "Payment status is pending. Please contact support if you completed the payment.";
             }
         }
-        catch (Exception ex)
+        catch(StripeException ex)
         {
             TempData["error"] = "Unable to verify payment status. Please contact support with your order number.";
         }
