@@ -3,6 +3,7 @@ using System.Security.Claims;
 using BulkyBook.Business;
 using BulkyBook.Business.Services.IServices;
 using BulkyBook.Models;
+using BulkyBook.Utiltiy;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -21,7 +22,7 @@ public class HomeController : Controller
     }
     public async Task<IActionResult> Index()
     {
-        var products=await _productService.GetAllProductsAsync(includeCategories:true);
+        var products = await _productService.GetAllProductsAsync(includeCategories: true);
         return View(products);
     }
 
@@ -44,22 +45,25 @@ public class HomeController : Controller
         return View(cart);
     }
 
-  [HttpPost]
-        [Authorize]
-        public async Task<IActionResult> Details(ShoppingCart shoppingCart)
+    [HttpPost]
+    [Authorize]
+    public async Task<IActionResult> Details(ShoppingCart shoppingCart)
+    {
+        var claimsIdentity = (ClaimsIdentity)User.Identity;
+        var userId = claimsIdentity?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (string.IsNullOrEmpty(userId))
         {
-            var claimsIdentity = (ClaimsIdentity)User.Identity;
-            var userId = claimsIdentity?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-            if (string.IsNullOrEmpty(userId))
-            {
-                return Unauthorized();
-            }
-
-            shoppingCart.ApplicationUserId = userId;
-            await _shoppingCartService.AddToCartAsync(shoppingCart);
-            TempData["success"] = "Item added to cart successfully";
-            return RedirectToAction("Index");
+            return Unauthorized();
         }
+
+        shoppingCart.ApplicationUserId = userId;
+        await _shoppingCartService.AddToCartAsync(shoppingCart);
+
+        var count = await _shoppingCartService.GetCartCountAsync(userId);
+        HttpContext.Session.SetInt32(SD.SessionCart, count);
+        TempData["success"] = "Item added to cart successfully";
+        return RedirectToAction("Index");
+    }
 
 }

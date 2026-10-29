@@ -32,7 +32,8 @@ builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IShoppingCartService,ShoppingCartService>();
 builder.Services.AddScoped<IApplicationUserService, ApplicationUserService>();
-builder.Services.AddScoped<IOrderService,OrderService>();
+builder.Services.AddScoped<IOrderService, OrderService>();
+
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
 {
@@ -63,10 +64,10 @@ if (!app.Environment.IsDevelopment())
     app.UseHttpsRedirection();
 }
 app.UseRouting();
-app.UseAuthorization();
+app.UseSession();
 
 app.UseAuthentication();
-app.UseSession();
+app.UseAuthorization();
 
 app.MapStaticAssets();
 app.MapControllerRoute(
