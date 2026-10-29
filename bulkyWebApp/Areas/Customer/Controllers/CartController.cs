@@ -19,7 +19,7 @@ public class CartController : Controller
     private readonly IApplicationUserService _applicationUserService;
     private readonly IEmailService _emailService;
 
-    public CartController(IOrderService orderService, IShoppingCartService shoppingCartService, IApplicationUserService applicationUserService,IEmailService emailService)
+    public CartController(IOrderService orderService, IShoppingCartService shoppingCartService, IApplicationUserService applicationUserService, IEmailService emailService)
     {
         _orderService = orderService;
         _shoppingCartService = shoppingCartService;
@@ -81,7 +81,7 @@ public class CartController : Controller
         {
             cart.Count--;
             await _shoppingCartService.UpdateCartAsync(cart);
-             await UpdateCartSessionAsync();
+            await UpdateCartSessionAsync();
         }
         return RedirectToAction(nameof(Index));
     }
