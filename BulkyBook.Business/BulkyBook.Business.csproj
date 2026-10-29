@@ -6,6 +6,10 @@
     <ProjectReference Include="..\BulkyBook.Utiltiy\BulkyBook.Utiltiy.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Mailjet.Api" Version="4.0.1" />
+  </ItemGroup>
+
   <PropertyGroup>
     <TargetFramework>net11.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
