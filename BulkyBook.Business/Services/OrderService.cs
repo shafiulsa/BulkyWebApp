@@ -15,13 +15,13 @@ public class OrderService : IOrderService
         _db = db;
     }
 
-        public async Task<OrderHeader> CreateOrderAsync(OrderHeader orderHeader)
-        {
-           _db.OrderHeaders.Add(orderHeader);
-            await _db.SaveChangesAsync();
+    public async Task<OrderHeader> CreateOrderAsync(OrderHeader orderHeader)
+    {
+        _db.OrderHeaders.Add(orderHeader);
+        await _db.SaveChangesAsync();
 
-            return orderHeader;
-        }
+        return orderHeader;
+    }
     public async Task<IEnumerable<OrderHeader>> GetAllOrderAsync(string? userId = null, string? status = null, bool includeUser = false, bool includeDetails = false)
     {
         var query = _db.OrderHeaders.AsQueryable();
@@ -66,29 +66,48 @@ public class OrderService : IOrderService
         _db.OrderHeaders.Update(orderHeader);
         await _db.SaveChangesAsync();
     }
-            public async Task UpdateOrderStatusAsync(int id, string orderStatus, string? carrier = null, string? trackingNumber = null)
+    public async Task UpdateOrderStatusAsync(int id, string orderStatus, string? carrier = null, string? trackingNumber = null)
+    {
+        var order = await _db.OrderHeaders.FindAsync(id);
+        if (order == null)
         {
-            var order = await _db.OrderHeaders.FindAsync(id);
-            if (order == null)
-            {
-                throw new KeyNotFoundException($"Order {id} not found");
-            }
-            order.OrderStatus = orderStatus;
-
-            if (orderStatus == SD.StatusShipped)
-            {
-                order.ShippingDate = DateTime.UtcNow;
-                if (!string.IsNullOrEmpty(carrier))
-                {
-                    order.Carrier = carrier;
-                }
-                if (!string.IsNullOrEmpty(trackingNumber))
-                {
-                    order.TrackingNumber = trackingNumber;
-                }
-            }
-
-            await _db.SaveChangesAsync();
+            throw new KeyNotFoundException($"Order {id} not found");
         }
+        order.OrderStatus = orderStatus;
+
+        if (orderStatus == SD.StatusShipped)
+        {
+            order.ShippingDate = DateTime.UtcNow;
+            if (!string.IsNullOrEmpty(carrier))
+            {
+                order.Carrier = carrier;
+            }
+            if (!string.IsNullOrEmpty(trackingNumber))
+            {
+                order.TrackingNumber = trackingNumber;
+            }
+        }
+
+        await _db.SaveChangesAsync();
+    }
+
+    public async Task UpdateStripePaymentAsync(int orderId, string sessionId, string paymentIntentId)
+    {
+        var order = await _db.OrderHeaders.FindAsync(orderId);
+        if (order == null)
+        {
+            throw new KeyNotFoundException($"Order {orderId} not found");
+        }
+        if (!string.IsNullOrEmpty(sessionId))
+        {
+            order.SessionId = sessionId;
+        }
+        if (!string.IsNullOrEmpty(paymentIntentId))
+        {
+            order.PaymentIntentId = paymentIntentId;
+        }
+
+        await _db.SaveChangesAsync();
+    }
 }
 

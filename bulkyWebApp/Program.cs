@@ -5,6 +5,7 @@ using BulkyBook.DataAccess.Data;
 using BulkyBook.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Stripe;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -29,8 +30,9 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 .AddEntityFrameworkStores<ApplicationDbContext>();
 
 builder.Services.AddScoped<ICategoryService, CategoryService>();
-builder.Services.AddScoped<IProductService, ProductService>();
-builder.Services.AddScoped<IShoppingCartService,ShoppingCartService>();
+// builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<IProductService, BulkyBook.Business.Services.ProductService>();
+builder.Services.AddScoped<IShoppingCartService, ShoppingCartService>();
 builder.Services.AddScoped<IApplicationUserService, ApplicationUserService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
@@ -60,6 +62,7 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
+ StripeConfiguration.ApiKey = builder.Configuration.GetSection("Stripe:SecretKey").Get<string>();
 if (!app.Environment.IsDevelopment())
 {
     app.UseHttpsRedirection();
@@ -81,7 +84,5 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}",
     defaults: new { area = "Customer" })
     .WithStaticAssets();
-
-
 
 app.Run();
