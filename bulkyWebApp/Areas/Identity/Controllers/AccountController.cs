@@ -1,3 +1,4 @@
+using BulkyBook.Business;
 using BulkyBook.Models;
 using BulkyBook.Models.ViewModels;
 using BulkyBook.Utiltiy;
@@ -14,25 +15,29 @@ public class AccountController : Controller
 
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly SignInManager<ApplicationUser> _signInManager;
-  private readonly RoleManager<IdentityRole>    _roleManager;
+    private readonly RoleManager<IdentityRole> _roleManager;
+    private readonly IShoppingCartService _shoppingCartService;
     public AccountController(UserManager<ApplicationUser> userManager,
         SignInManager<ApplicationUser> signInManager,
-        RoleManager<IdentityRole> roleManager)
+        RoleManager<IdentityRole> roleManager,
+        IShoppingCartService shoppingCartService)
     {
         _userManager = userManager;
         _signInManager = signInManager;
         _roleManager = roleManager;
+        _shoppingCartService = shoppingCartService;
     }
 
-        public IActionResult Login(string? returnUrl = null)
-        {
-            ViewData["ReturnUrl"] = returnUrl;
-            return View();
-        }
+    public IActionResult Login(string? returnUrl = null)
+    {
+        ViewData["ReturnUrl"] = returnUrl;
+        return View();
+    }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Login(LoginVM loginVM, string? returnUrl = null)    {
+    public async Task<IActionResult> Login(LoginVM loginVM, string? returnUrl = null)
+    {
         if (ModelState.IsValid)
         {
             var result = await _signInManager.PasswordSignInAsync(loginVM.Email,
@@ -40,43 +45,50 @@ public class AccountController : Controller
 
             if (result.Succeeded)
             {
+                var user = await _userManager.FindByEmailAsync(loginVM.Email);
+                if (user != null)
+                {
+                    var count = await _shoppingCartService.GetCartCountAsync(user.Id);
+                    HttpContext.Session.SetInt32(SD.SessionCart, count);
+                }
                 // Redirect to returnUrl if valid, otherwise go to Home
-                    if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
-                    {
-                        return Redirect(returnUrl);
-                    }
-                        return RedirectToAction("Index", "Home", new { area = "Customer" });
+                if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+                {
+                    return Redirect(returnUrl);
+                }
+                return RedirectToAction("Index", "Home", new { area = "Customer" });
             }
             ModelState.AddModelError(string.Empty, "Invalid login attempt.");
         }
         return View(loginVM);
     }
 
- public IActionResult Register(string? returnUrl = null)
-        {
+    public IActionResult Register(string? returnUrl = null)
+    {
 
-            var model = new RegisterVM{
-                RoleList =
-                [
-                    new SelectListItem{Text=SD.RoleCustomer, Value=SD.RoleCustomer},
+        var model = new RegisterVM
+        {
+            RoleList =
+            [
+                new SelectListItem{Text=SD.RoleCustomer, Value=SD.RoleCustomer},
                     new SelectListItem{Text=SD.RoleAdmin, Value=SD.RoleAdmin},
                     new SelectListItem{Text=SD.RoleEmployee, Value=SD.RoleEmployee},
                 ]
-            };
-            ViewData["ReturnUrl"] = returnUrl;
-            return View(model);
-        }
-
+        };
+        ViewData["ReturnUrl"] = returnUrl;
+        return View(model);
+    }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Register(RegisterVM registerVM, string? returnUrl = null)    {
-           if(!await _roleManager.RoleExistsAsync(SD.RoleCustomer))
-            {
-                await _roleManager.CreateAsync(new IdentityRole(SD.RoleCustomer));
-                await _roleManager.CreateAsync(new IdentityRole(SD.RoleAdmin));
-                await _roleManager.CreateAsync(new IdentityRole(SD.RoleEmployee));
-            }
+    public async Task<IActionResult> Register(RegisterVM registerVM, string? returnUrl = null)
+    {
+        if (!await _roleManager.RoleExistsAsync(SD.RoleCustomer))
+        {
+            await _roleManager.CreateAsync(new IdentityRole(SD.RoleCustomer));
+            await _roleManager.CreateAsync(new IdentityRole(SD.RoleAdmin));
+            await _roleManager.CreateAsync(new IdentityRole(SD.RoleEmployee));
+        }
         if (ModelState.IsValid)
         {
             var user = new ApplicationUser
@@ -101,11 +113,12 @@ public class AccountController : Controller
                 }
                 else
                 {
-                        await _userManager.AddToRoleAsync(user, SD.RoleCustomer);
+                    await _userManager.AddToRoleAsync(user, SD.RoleCustomer);
                 }
                 //user has been created
 
                 await _signInManager.SignInAsync(user, isPersistent: false);
+                 HttpContext.Session.SetInt32(SD.SessionCart, 0);
                 if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
                 {
                     return Redirect(returnUrl);
@@ -130,6 +143,7 @@ public class AccountController : Controller
     public async Task<IActionResult> Logout()
     {
         await _signInManager.SignOutAsync();
+        HttpContext.Session.SetInt32(SD.SessionCart, 0);
         return RedirectToAction("Index", "Home", new { area = "Customer" });
     }
 }
