@@ -45,11 +45,15 @@ public class AccountController : Controller
 
             if (result.Succeeded)
             {
-   
+
                 // Redirect to returnUrl if valid, otherwise go to Home
                 if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
                 {
                     return Redirect(returnUrl);
+                }
+                if(User.IsInRole(SD.RoleAdmin) || User.IsInRole(SD.RoleEmployee))
+                {
+                    return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
                 }
                 return RedirectToAction("Index", "Home", new { area = "Customer" });
             }
