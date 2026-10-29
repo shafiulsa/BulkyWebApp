@@ -177,9 +177,9 @@ public class CartController : Controller
                 LineItems = new List<SessionLineItemOptions>(),
                 Mode = "payment",
                 Metadata = new Dictionary<string, string>
-                        {
-                            { "OrderId", shoppingCartVM.OrderHeader.Id.ToString() }
-                        }
+                          {
+                              { "OrderId", shoppingCartVM.OrderHeader.Id.ToString() }
+                          }
             };
 
             foreach (var item in shoppingCartVM.ShoppingCartList)
@@ -203,9 +203,15 @@ public class CartController : Controller
 
             var service = new SessionService();
             Session session = service.Create(options);
+            await _orderService.UpdateStripePaymentAsync(shoppingCartVM.OrderHeader.Id, session.Id, session.PaymentIntentId);
+
+            Response.Headers.Append("Location", session.Url);
+            return new StatusCodeResult(303);
         }
         catch (Exception ex)
         {
+            TempData["error"] = "Payment processing failed. Please try again.";
+            return RedirectToAction(nameof(Index));
         }
 
         var user = await _applicationUserService.GetUserByIdAsync(userId);
